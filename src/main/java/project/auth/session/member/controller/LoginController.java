@@ -5,13 +5,10 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import project.auth.session.member.domain.Member;
-import project.auth.session.member.repository.MemberRepository;
 import project.auth.session.member.service.MemberService;
 
 @Controller
@@ -20,8 +17,18 @@ public class LoginController {
     private final MemberService memberService;
 
     @GetMapping("/login")
-    public String loginForm(@ModelAttribute("loginForm") LoginForm form) {
+    public String loginForm(
+        @RequestParam(name = "redirectURL", defaultValue = "/") String redirectURL,
+        Model model
+    ) {
+        model.addAttribute("loginForm", new LoginForm());
+        model.addAttribute("redirectURL", redirectURL);
         return "login";
+    }
+
+    @GetMapping("/login/check")
+    public String loginCheck() {
+        return "loginCheck";
     }
 
     @PostMapping("/login")
@@ -46,7 +53,9 @@ public class LoginController {
         HttpSession session = request.getSession();
         session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);
 
-        return "redirect:/";
+        String redirectURL = request.getParameter("redirectURL");
+
+        return "redirect:" + (redirectURL != null ? redirectURL : "/");
     }
 
     @PostMapping("/logout")
